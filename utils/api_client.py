@@ -3,22 +3,32 @@ import os
 from typing import Optional, Dict, Any
 
 # Load from env or default
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+# Load from env or default
+# For unified deployment on Streamlit Cloud, we should default to localhost:8000
+BACKEND_URL = os.getenv("BACKEND_URL", "http://127.0.0.1:8000")
 
 def get_resumes():
     try:
         resp = requests.get(f"{BACKEND_URL}/resumes/")
         return resp.json() if resp.status_code == 200 else []
-    except:
+    except Exception as e:
+        print(f"Error fetching resumes: {e}")
         return []
 
 def upload_resume(file_obj):
     try:
+        print(f"Attempting upload to: {BACKEND_URL}/resumes/upload")
+        # Go back to start of file just in case
+        file_obj.seek(0)
         files = {"file": (file_obj.name, file_obj, file_obj.type)}
         resp = requests.post(f"{BACKEND_URL}/resumes/upload", files=files)
+        
+        if resp.status_code != 200:
+            print(f"Upload failed: {resp.status_code} - {resp.text}")
+            
         return resp.json() if resp.status_code == 200 else None
     except Exception as e:
-        print(e)
+        print(f"Exception during upload: {e}")
         return None
 
 def create_jd(role: str, jd_text: str):

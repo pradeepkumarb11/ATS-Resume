@@ -2,3 +2,13 @@ streamlit
 requests
 pandas
 plotly
+fastapi
+uvicorn
+sqlalchemy
+psycopg2-binary
+pydantic-settings
+python-multipart
+python-docx
+pypdf2
+scikit-learn
+reportlab

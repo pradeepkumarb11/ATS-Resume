@@ -6,6 +6,47 @@ st.set_page_config(
     layout="wide"
 )
 
+# --- Start Backend (Unified Deployment) ---
+import subprocess
+import time
+import requests
+import os
+import sys
+
+# Function to check if backend is running
+def is_backend_running(url="http://localhost:8000"):
+    try:
+        requests.get(f"{url}/")
+        return True
+    except requests.exceptions.ConnectionError:
+        return False
+
+# Start backend if not running
+if not is_backend_running():
+    with st.spinner("Starting Backend Server... (This may take a minute)"):
+        # We run uvicorn from the 'backend' directory so relative imports in backend/app work correctly
+        # We use a non-blocking subprocess
+        backend_process = subprocess.Popen(
+            [sys.executable, "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8000"],
+            cwd="backend",  # Important: Run from backend directory
+            stdout=subprocess.DEVNULL, # Suppress stdout to keep streamlit clean
+            stderr=subprocess.DEVNULL,
+        )
+        # Wait a few seconds for it to start
+        time.sleep(5)
+        
+        # Retry check
+        retries = 10
+        while retries > 0:
+            if is_backend_running():
+                st.success("Backend started successfully!")
+                break
+            time.sleep(2)
+            retries -= 1
+        else:
+            st.error("Failed to start backend. Please check logs.")
+# ------------------------------------------
+
 st.title("🚀 AI Resume Checker & Optimizer")
 
 st.markdown("""
